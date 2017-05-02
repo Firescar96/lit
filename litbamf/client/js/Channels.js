@@ -3,16 +3,117 @@ import lc from './LitClient';
 import Q from 'q';
 require('../sass/channels.scss');
 
-class PeerElement extends React.Component {
+let Actions = Reflux.createActions([])
+
+class PeerStore extends Reflux.Store {
+  constructor () {
+    super();
+    this.state = {
+      peers: []
+    };
+  }
+}
+
+class PeerModal extends Reflux.Component {
   constructor (props) {
-    super(props)
+    super(props);
+
+    this.state = {
+      address: '',
+      nickname: '',
+    };
+    this.store = PeerStore;
+  }
+  connect () {
+    lc.send('LitRPC.Connect', {'LNAddr': this.state.address, 'Nickname': this.state.nickname}).then(res => {
+      window.location = window.location.href.split('#')[0];
+      this.state.peers.append({
+        address: this.state.address,
+        nickname: this.state.nickname,
+        channels: [],
+      });
+    })
+    .fail(err => {
+      console.error(err);
+    });
+  }
+  handleChange (event) {
+    let state = {};
+    state[event.target.id] = event.target.value;
+    this.setState(state);
   }
   render () {
     return (
-      <li>
-        {this.props.name}
-      </li>
-    )
+      <section className="css-modal css-modal--transition--fade" id="peer-modal"
+        data-stackable="false"
+        role="dialog"
+        aria-labelledby="label-fade"
+        aria-hidden="true">
+
+        <div className="css-modal_inner">
+          <header className="css-modal_header">
+            <h2 id="label-fade">Add Peer</h2>
+          </header>
+
+          <div className="css-modal_content">
+            <div>
+              <input id="address" type="text" placeholder="pubkeyhash@hostname:port"
+                value={this.state.address} onChange={this.handleChange.bind(this)}></input>
+              <input id="nickname" type="text" placeholder="nickname"
+                value={this.state.nickname} onChange={this.handleChange.bind(this)}></input>
+            </div>
+            <div><button onClick={this.connect.bind(this)}>Go</button></div>
+          </div>
+          <div>
+            <a href="#!" className="css-modal_close css-modal_close_button"
+              title="Close this modal">&times;</a>
+          </div>
+        </div>
+        <a href="#!" className="css-modal_close css-modal_close_area"
+          title="Close this modal">&times;</a>
+      </section>
+    );
+  }
+}
+
+class PeerList extends Reflux.Component {
+  constructor (props) {
+    super(props);
+
+    this.store = PeerStore;
+  }
+  update () {
+    lc.send('LitRPC.ListConnections').then(connections => {
+      let peers = connections.Connections !== null ? connections.Connections : [];
+      console.log(peers);
+      this.setState({
+        peers: peers,
+      });
+    })
+    .fail(err => {
+      console.error(err);
+    });
+  }
+  render () {
+    let peerElements = this.state.peers.map(peer => {
+      return (
+        <li>
+          {peer.Nickname}
+        </li>
+      );
+    });
+
+    return (
+      <ul id="peerList">
+        {peerElements}
+        <li id="peer-add">
+          <a href="#peer-modal">+</a>
+        </li>
+      </ul>
+    );
+  }
+  componentDidMount () {
+    this.update();
   }
 }
 
@@ -96,33 +197,36 @@ class ChanCmds extends React.Component {
     this.setState(state);
   }
   render () {
-    let peerElements = [<PeerElement name="dummyname"/>];
-    let channelElements = [<ChannelElement capacity="lots o money" balance="less money" state="42"/>];
+    let channelElements = [<ChannelElement key="dumchan" capacity="lots o money" balance="less money" state="42"/>];
 
     return (
       <div>
         <Navbar />
 
         <div id="chanbox">
-          <ul id="peerList">
-            {peerElements}
-          </ul>
+          <PeerList />
           <div id="channelList">
             <table>
-              <tr>
-                <th className="chan-capacity">Capacity</th>
-                <th className="chan-balance">Balance</th>
-                <th className="chan-state">State</th>
-                <th className="chan-zap">Zap Funds to Channel</th>
-                <th className="chan-xtra"> X-tra Commands</th>
-              </tr>
-              {channelElements}
+              <thead>
+                <tr>
+                  <th className="chan-capacity">Capacity</th>
+                  <th className="chan-balance">Balance</th>
+                  <th className="chan-state">State</th>
+                  <th className="chan-zap">Zap Funds to Channel</th>
+                  <th className="chan-xtra"> X-tra Commands</th>
+                </tr>
+              </thead>
+              <tbody>
+                {channelElements}
+              </tbody>
             </table>
           </div>
         </div>
         <div id="chatbox">
-
         </div>
+
+        <PeerModal />
+
         <button onClick={this.fund}>fund</button>
         <input type="text" id="fundPeer" value={this.state.fundPeer}
           onChange={this.handleChange}></input>
@@ -147,14 +251,5 @@ class ChanCmds extends React.Component {
     );
   }
 }
-
-// client.call(
-//   {'jsonrpc': '2.0', 'method': 'myMethod', 'params': [1,2], 'id': 0},
-//   function (err, res) {
-//     // Did it all work ?
-//     if (err) { console.log(err); }
-//     else { console.log(res); }
-//   }
-// );
 
 export default ChanCmds;

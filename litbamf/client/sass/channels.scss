@@ -14,10 +14,25 @@
     margin: 0;
     padding: 0;
     list-style: none;
+    border-right: 1px solid #fff;
 
     li {
-
       margin: 20px 10px;
+
+      &#peer-add {
+        margin: 0 5px;
+        font-size: 16px;
+        text-align: center;
+
+        a {
+          display: block;
+          width: 100%;
+          height: 100%;
+          text-decoration: none;
+          border: 1px solid #fff;
+          color: #fff;
+        }
+      }
     }
   }
 
@@ -36,7 +51,7 @@
       col:nth-child(3){flex: 1}
       col:nth-child(3){flex: 1}
 
-       th, td {
+      th, td {
         padding: 10px 0;
         text-align: center;
 
@@ -57,5 +72,49 @@
 
   .chan-capacity {
     width: 100px;
+  }
+}
+
+#peer-modal {
+  .css-modal_inner {
+    width: 600px;
+  }
+
+  .css-modal_content {
+    display: flex;
+
+    div {
+      flex: 1;
+      text-align: center;
+
+      &:first-child {
+      }
+
+      &:last-child {
+        display: flex;
+      }
+    }
+
+    input[type="text"] {
+      display: block;
+      margin: 20px 0;
+      background: transparent;
+      border: none;
+      outline: none;
+      border-bottom: 1px solid white;
+      color: #fff;
+
+      &#address {
+        width: 450px;
+      }
+    }
+
+    button {
+      margin: auto;
+      width: 40px;
+      height: 40px;
+      background: none;
+      color: #fff;
+    }
   }
 }

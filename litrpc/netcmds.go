@@ -30,19 +30,23 @@ func (r *LitRPC) Listen(args ListenArgs, reply *StatusReply) error {
 
 // ------------------------- connect
 type ConnectArgs struct {
-	LNAddr string
+	LNAddr   string
+	Nickname string
 }
 
 func (r *LitRPC) Connect(args ConnectArgs, reply *StatusReply) error {
 
 	// first, see if the peer to connect to is referenced by peer index.
 	var connectAdr string
+	var nickname string
+
 	// check if a peer number was supplied instead of a pubkeyhash
 	peerIdxint, err := strconv.Atoi(args.LNAddr)
 	// number will mean no error
 	if err == nil {
 		// get peer from address book
-		pubArr, host := r.Node.GetPubHostFromPeerIdx(uint32(peerIdxint))
+		pubArr, host, _nickname := r.Node.GetPubHostFromPeerIdx(uint32(peerIdxint))
+		nickname = _nickname
 
 		connectAdr = lnutil.LitAdrFromPubkey(pubArr)
 		if host != "" {
@@ -55,12 +59,16 @@ func (r *LitRPC) Connect(args ConnectArgs, reply *StatusReply) error {
 		connectAdr = args.LNAddr
 	}
 
-	err = r.Node.DialPeer(connectAdr)
+	if args.Nickname != "" {
+		nickname = args.Nickname
+	}
+
+	err = r.Node.DialPeer(connectAdr, nickname)
 	if err != nil {
 		return err
 	}
 
-	reply.Status = fmt.Sprintf("connected to peer %s", connectAdr)
+	reply.Status = fmt.Sprintf("connected to %s on %s", nickname, connectAdr)
 	return nil
 }
 

@@ -61,16 +61,19 @@ func (nd *LitNode) TCPListener(
 				newConn.RemotePub.SerializeCompressed(), newConn.RemoteAddr().String())
 
 			// don't save host/port for incomming connections
-			peerIdx, err := nd.GetPeerIdx(newConn.RemotePub, "")
+			peerIdx, err := nd.GetPeerIdx(newConn.RemotePub, "", "")
 			if err != nil {
 				log.Printf("Listener error: %s\n", err.Error())
 				continue
 			}
 
+			_, _, nickname := nd.GetPubHostFromPeerIdx(peerIdx)
+
 			nd.RemoteMtx.Lock()
 			var peer RemotePeer
 			peer.Idx = peerIdx
 			peer.Con = newConn
+			peer.Nickname = nickname
 			nd.RemoteCons[peerIdx] = &peer
 			nd.RemoteMtx.Unlock()
 
@@ -85,7 +88,7 @@ func (nd *LitNode) TCPListener(
 }
 
 // DialPeer makes an outgoing connection to another node.
-func (nd *LitNode) DialPeer(connectAdr string) error {
+func (nd *LitNode) DialPeer(connectAdr string, nickname string) error {
 
 	// parse address and get pkh / host / port
 	who, where := lndc.SplitAdrString(connectAdr)
@@ -111,7 +114,7 @@ func (nd *LitNode) DialPeer(connectAdr string) error {
 
 	// figure out peer index, or assign new one for new peer.  Since
 	// we're connecting out, also specify the hostname&port
-	peerIdx, err := nd.GetPeerIdx(newConn.RemotePub, newConn.RemoteAddr().String())
+	peerIdx, err := nd.GetPeerIdx(newConn.RemotePub, newConn.RemoteAddr().String(), nickname)
 	if err != nil {
 		return err
 	}
@@ -120,6 +123,7 @@ func (nd *LitNode) DialPeer(connectAdr string) error {
 	var p RemotePeer
 	p.Con = newConn
 	p.Idx = peerIdx
+	p.Nickname = nickname
 	nd.RemoteCons[peerIdx] = &p
 	nd.RemoteMtx.Unlock()
 
@@ -154,6 +158,7 @@ func (nd *LitNode) OutMessager() {
 type PeerInfo struct {
 	PeerNumber uint32
 	RemoteHost string
+	Nickname   string
 }
 
 func (nd *LitNode) GetConnectedPeerList() []PeerInfo {
@@ -164,6 +169,7 @@ func (nd *LitNode) GetConnectedPeerList() []PeerInfo {
 		var newPeer PeerInfo
 		newPeer.PeerNumber = k
 		newPeer.RemoteHost = v.Con.RemoteAddr().String()
+		newPeer.Nickname = v.Nickname
 		peers = append(peers, newPeer)
 	}
 	return peers
