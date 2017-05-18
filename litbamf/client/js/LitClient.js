@@ -19,14 +19,10 @@ class LitClient {
       if(data.error !== null) {
         callbacks[data.id].reject(data.error);
         delete callbacks[data.id];
-      }else if(data.id === null) {
-        //go to the special chat message handler, but don't delete the callback
-        callbacks[data.id](data.result);
       }else {
         callbacks[data.id].resolve(data.result);
         delete callbacks[data.id];
       }
-
     };
   }
   send (method, ...args) {
@@ -38,9 +34,6 @@ class LitClient {
     callbacks[id] = deferred;
 
     return deferred.promise;
-  }
-  register (id, callback) {
-    callbacks[id] = callback;
   }
 }
 

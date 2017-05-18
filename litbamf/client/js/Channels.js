@@ -483,27 +483,33 @@ class Chatbox extends Reflux.Component {
       console.error(err);
     });
   }
-  chatHandler (message) {
-    let peer = this.state.peers[message.PeerIdx];
-    //if we receive a message before the peers list is updated
-    //it can't be handled yet
-    if(peer === undefined) {
-      return;
-    }
+  chatHandler () {
+    lc.send('LitRPC.CheckChatMessages').then(isNew => {
+      if(isNew) {
+        lc.send('LitRPC.GetChatMessage').then(message => {
+          let peer = this.state.peers[message.PeerIdx];
+          //if we receive a message before the peers list is updated
+          //it can't be handled yet
+          if(peer === undefined) {
+            return;
+          }
 
-    let date = new Date();
-    let time = date.getHours() + ':' + date.getMinutes();
+          let date = new Date();
+          let time = date.getHours() + ':' + date.getMinutes();
 
-    let conversations = this.state.conversations;
-    let conversation = conversations[message.PeerIdx] || [];
-    conversation.push({
-      isMyMessage: false,
-      name: peer.Nickname,
-      message: message.Text,
-      time: time,
+          let conversations = this.state.conversations;
+          let conversation = conversations[message.PeerIdx] || [];
+          conversation.push({
+            isMyMessage: false,
+            name: peer.Nickname,
+            message: message.Text,
+            time: time,
+          });
+          conversations[message.PeerIdx] = conversation;
+          this.setState({conversations: conversations});
+        });
+      }
     });
-    conversations[message.PeerIdx] = conversation;
-    this.setState({conversations: conversations});
   }
   changeMessage (event) {
     this.setState({message: event.target.value});
@@ -537,7 +543,7 @@ class Chatbox extends Reflux.Component {
     );
   }
   componentDidMount () {
-    lc.register(null, this.chatHandler.bind(this));
+    setInterval(this.chatHandler.bind(this), 500);
   }
 }
 
