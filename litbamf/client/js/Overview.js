@@ -1,4 +1,4 @@
-import {Navbar} from './Globals.js';
+import {Navbar} from './Navbar.js';
 import lc from './LitClient';
 import Q from 'q';
 require('../sass/overview.scss');

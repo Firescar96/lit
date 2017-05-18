@@ -1,10 +1,9 @@
-import rpc from 'node-json-rpc';
 import Q from 'q';
 
 let callbacks = {};
 let requestNonce = 0;
 
-class LitAfClient {
+class LitClient {
   constructor () {
     this.host = location.hostname;
     this.port = location.port;
@@ -45,6 +44,6 @@ class LitAfClient {
   }
 }
 
-let lc = new LitAfClient();
+let lc = new LitClient();
 
 export default lc;

@@ -1,6 +1,6 @@
 import Q from 'q';
 import lc from './LitClient';
-import {Navbar} from './Globals.js';
+import {Navbar} from './Navbar.js';
 require('../sass/legacy.scss');
 
 let Actions = Reflux.createActions(['setTransactions', 'setAddresses']);

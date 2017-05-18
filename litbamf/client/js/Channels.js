@@ -1,4 +1,4 @@
-import {Navbar} from './Globals.js';
+import {Navbar} from './Navbar.js';
 import lc from './LitClient';
 import Q from 'q';
 require('../sass/channels.scss');
@@ -134,7 +134,7 @@ class NicknameModal extends Reflux.Component {
 
         <div className="css-modal_inner">
           <header className="css-modal_header">
-            <h2 id="label-fade">Edit Nicknamer</h2>
+            <h2 id="label-fade">Edit Nickname</h2>
           </header>
 
           <form action="javascript:void(0);" className="css-modal_content">
